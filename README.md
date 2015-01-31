@@ -20,12 +20,14 @@ Licensed under the MIT License
 ##Requires
   - Modern Fortran compiler
     - Must be at least approximately Fortran 2008 compliant
+    - `gfortran` required for  `makefile`
 
-  
+##Getting Started
+ - The simplest way to start running integrations is simply by using the command `make` in the same directory as `makefile`
   
 ##Optional Packages
-  - python (2 or 3)
-    - ipython (version > 2.0)
-    - numpy
-    - matplotlib
+  - `python` (2 or 3)
+    - `ipython` (version > 2.0)
+    - `numpy`
+    - `matplotlib`
   - LaTeX (for use with matplotlib; not essential)
