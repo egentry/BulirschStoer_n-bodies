@@ -23,7 +23,10 @@ Licensed under the MIT License
     - `gfortran` required for  `makefile`
 
 ##Getting Started
- - The simplest way to start running integrations is simply by using the command `make` in the same directory as `makefile`
+ - Choose an example
+ - Switch to that directory
+ - Run: `ipython notebook visualize_integration.ipynb`
+ - s
   
 ##Optional Packages
   - `python` (2 or 3)
