@@ -25,9 +25,8 @@ Licensed under the MIT License
 ##Getting Started
  - Choose an example
  - Switch to that directory
- - Run: `ipython notebook visualize_integration.ipynb`
- - s
-  
+ - Either start: `ipython notebook visualize_integration.ipynb` or run `make` and then visualize with your plotting package of choice
+
 ##Optional Packages
   - `python` (2 or 3)
     - `ipython` (version > 2.0)
