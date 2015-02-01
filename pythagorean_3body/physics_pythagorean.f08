@@ -10,15 +10,16 @@ module physics
     implicit none
     private calc_energy, calc_angular_momentum_scalar
     public calc_force, accuracy_check
+    integer, parameter           :: precision=16 ! double precision
 
     type, public :: accuracy_state
-            real(kind=16) :: energy, angular_momentum
+            real(kind=precision) :: energy, angular_momentum
         contains
             procedure, pass :: initialize => accuracy_state_initialize
     end type accuracy_state
 
-    real(kind=16), parameter     :: energy_tol           = 1d-11
-    real(kind=16), parameter     :: angular_momentum_tol = 1d-6
+    real(kind=precision), parameter     :: energy_tol           = 1d-11
+    real(kind=precision), parameter     :: angular_momentum_tol = 1d-6
 
     contains
 
@@ -41,10 +42,10 @@ subroutine calc_force(n_bodies, x, mass, force)
 
     implicit none
     integer,                               intent(in)  :: n_bodies
-    real(kind=16), dimension(n_bodies, 3), intent(in)  :: x
-    real(kind=16), dimension(n_bodies   ), intent(in)  :: mass
-    real(kind=16), dimension(n_bodies, 3), intent(out) :: force
-    real(kind=16), dimension(3)                        :: df
+    real(kind=precision), dimension(n_bodies, 3), intent(in)  :: x
+    real(kind=precision), dimension(n_bodies   ), intent(in)  :: mass
+    real(kind=precision), dimension(n_bodies, 3), intent(out) :: force
+    real(kind=precision), dimension(3)                        :: df
     integer                                            :: i,j ! loop variables
 
     force = 0.
@@ -61,9 +62,9 @@ end subroutine calc_force
     pure function calc_energy(n_bodies, x, v, mass) result(energy)
         implicit none
         integer,                               intent(in)  :: n_bodies
-        real(kind=16), dimension(n_bodies, 3), intent(in)  :: x, v
-        real(kind=16), dimension(n_bodies   ), intent(in)  :: mass
-        real(kind=16)                                      :: energy
+        real(kind=precision), dimension(n_bodies, 3), intent(in)  :: x, v
+        real(kind=precision), dimension(n_bodies   ), intent(in)  :: mass
+        real(kind=precision)                                      :: energy
         integer                                            :: i,j ! loop variables
 
         energy = 0.
@@ -83,9 +84,9 @@ end subroutine calc_force
         ! only calculates angular momentum in z-hat direction
         implicit none
         integer,                               intent(in)  :: n_bodies
-        real(kind=16), dimension(n_bodies, 3), intent(in)  :: x, v
-        real(kind=16), dimension(n_bodies   ), intent(in)  :: mass
-        real(kind=16)                                      :: angular_momentum
+        real(kind=precision), dimension(n_bodies, 3), intent(in)  :: x, v
+        real(kind=precision), dimension(n_bodies   ), intent(in)  :: mass
+        real(kind=precision)                                      :: angular_momentum
         integer                                            :: i ! loop variables
 
         angular_momentum = 0.
@@ -102,7 +103,7 @@ end subroutine calc_force
         implicit none
         class(accuracy_state), intent(in) :: state_initial, state_current
         logical :: check
-        real(kind=16) :: energy_err, angular_momentum_err
+        real(kind=precision) :: energy_err, angular_momentum_err
 
         energy_err = abs( (state_current%energy - state_initial%energy) &
             / (state_initial%energy) )
@@ -123,9 +124,9 @@ end subroutine calc_force
         implicit none
         class(accuracy_state),                 intent(out) :: state
         integer,                               intent(in)  :: n_bodies
-        real(kind=16), dimension(n_bodies, 3), intent(in)  :: x, v
-        real(kind=16), dimension(n_bodies   ), intent(in)  :: mass
-        real(kind=16) :: energy, angular_momentum
+        real(kind=precision), dimension(n_bodies, 3), intent(in)  :: x, v
+        real(kind=precision), dimension(n_bodies   ), intent(in)  :: mass
+        real(kind=precision) :: energy, angular_momentum
 
         energy = calc_energy(n_bodies, x, v, mass)
         angular_momentum = calc_angular_momentum_scalar(n_bodies, x, v, mass)

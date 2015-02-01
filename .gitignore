@@ -3,3 +3,5 @@
 *.mod
 *.out
 .ipynb_checkpoints/
+*.eps
+*.pdf

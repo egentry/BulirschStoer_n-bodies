@@ -9,12 +9,12 @@ program pythagorean_3body
 
     integer, parameter                       :: n_bodies = 3
     ! 3-position, 3-velocity
-    real(kind=16), dimension(n_bodies, 3)    :: x, v
-    real(kind=16), dimension(n_bodies)       :: mass
+    real(kind=precision), dimension(n_bodies, 3)    :: x, v
+    real(kind=precision), dimension(n_bodies)       :: mass
 
-    real(kind=16), parameter     :: H_big = 1./real(10**(4), kind=16) ! large step size
-    real(kind=16)                :: t
-    real(kind=16), parameter     :: t_max = 70.
+    real(kind=precision), parameter     :: H_big = 1./real(10**(4), kind=precision) ! large step size
+    real(kind=precision)                :: t
+    real(kind=precision), parameter     :: t_max = 70.
 
     type(accuracy_state)         :: state_initial, state_final
 

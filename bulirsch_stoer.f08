@@ -1,4 +1,4 @@
-  module bulirsch_stoer 
+module bulirsch_stoer 
     use physics
 
 contains
@@ -7,9 +7,9 @@ contains
         ! assumes 3 index array
         ! assumes 1st index doubled
         implicit none
-        real(kind=16), allocatable, intent(inout)     :: array_in( :,:,:)
-        real(kind=16), allocatable                    :: array_tmp(:,:,:)
-        integer, dimension(3)                         :: array_in_shape
+        real(kind=precision), allocatable, intent(inout)     :: array_in( :,:,:)
+        real(kind=precision), allocatable                    :: array_tmp(:,:,:)
+        integer, dimension(3)                                :: array_in_shape
         integer :: i, j, k  ! loop variables
 
 
@@ -32,9 +32,9 @@ contains
         !   merge with double_array_size_3_index
 
         implicit none
-        real(kind=16), allocatable, intent(inout)     :: array_in( :)
-        real(kind=16), allocatable                    :: array_tmp(:)
-        integer, dimension(1)                        :: array_in_shape
+        real(kind=precision), allocatable, intent(inout)     :: array_in( :)
+        real(kind=precision), allocatable                    :: array_tmp(:)
+        integer, dimension(1)                                :: array_in_shape
         integer :: i  ! loop variables
 
 
@@ -59,18 +59,18 @@ contains
         !        so allowing more n_steps just grinds to a halt
 
         implicit none
-        integer,                               intent(in)     :: n_bodies
-        real(kind=16), dimension(n_bodies, 3), intent(inout)  :: x_in, v_in
-        real(kind=16), dimension(n_bodies),    intent(in)     :: mass
-        real(kind=16),                         intent(in)     :: H_big
+        integer,                                      intent(in)     :: n_bodies
+        real(kind=precision), dimension(n_bodies, 3), intent(inout)  :: x_in, v_in
+        real(kind=precision), dimension(n_bodies),    intent(in)     :: mass
+        real(kind=precision),                         intent(in)     :: H_big
 
-        real(kind=16)                :: energy_initial, angular_momentum_initial
-        real(kind=16)                :: energy,         angular_momentum
-        real(kind=16)                :: energy_err,     angular_momentum_err
+        real(kind=precision)                :: energy_initial, angular_momentum_initial
+        real(kind=precision)                :: energy,         angular_momentum
+        real(kind=precision)                :: energy_err,     angular_momentum_err
 
         ! keep track of results of x,v as a function of n used for modified midpoint
-        real(kind=16), allocatable              :: x_tmp(:,:,:), v_tmp(:,:,:)
-        real(kind=16), allocatable              :: h_small_array(:)
+        real(kind=precision), allocatable   :: x_tmp(:,:,:), v_tmp(:,:,:)
+        real(kind=precision), allocatable   :: h_small_array(:)
 
         ! keep track of highest n used for modified midpoint
         !   and how many 'n' the current x_tmp and v_tmp arrays can fit
@@ -78,14 +78,14 @@ contains
         integer                                 :: n_steps_allocated
         integer, parameter                      :: n_steps_max = 1024
 
-        real(kind=16), parameter  :: h0 = 0. ! for use with richardson extrap.
+!         real(kind=precision), parameter  :: h0 = 0. ! for use with richardson extrap.
         !temporary holder of nth modified midpoint result at t = t+H
-        real(kind=16), dimension(n_bodies, 3)   :: x_n, v_n
+        real(kind=precision), dimension(n_bodies, 3)   :: x_n, v_n
 
         logical      :: continue_bulirsch_stoer
         integer      :: i,j ! loop variables
 
-        type(accuracy_state)        :: state_initial, state_current
+        type(accuracy_state)   :: state_initial, state_current
         call state_initial%initialize(n_bodies, x_in, v_in, mass)
 
 
@@ -143,9 +143,9 @@ contains
 
             do concurrent (i=1:n_bodies, j=1:2)
                 x_n(i,j) = rational_interp(n_steps/2, h_small_array(1:n_steps/2), &
-                    x_tmp(1:n_steps/2, i,j), h0)
+                    x_tmp(1:n_steps/2, i,j))
                 v_n(i,j) = rational_interp(n_steps/2, h_small_array(1:n_steps/2), &
-                    v_tmp(1:n_steps/2, i,j), h0)
+                    v_tmp(1:n_steps/2, i,j))
             end do
             do concurrent (i=1:n_bodies)
                 ! enforce z=0 plane, otherwise extrapolator can get confused
@@ -198,18 +198,18 @@ contains
     subroutine modified_midpoint(n_bodies, x_in, v_in, mass, H_big, n_steps, x_out, v_out)
         ! follows the algorithm of Eq 16.3.2 in Numerical Recipes, v2
         implicit none
-        integer,                               intent(in)    :: n_bodies, n_steps  
-        real(kind=16), dimension(n_bodies, 3), intent(in)    :: x_in, v_in
-        real(kind=16), dimension(n_bodies   ), intent(in)    :: mass
-        real(kind=16),                         intent(in)    :: H_big
-        real(kind=16), dimension(n_bodies, 3), intent(out)   :: x_out, v_out
+        integer,                                      intent(in)    :: n_bodies, n_steps  
+        real(kind=precision), dimension(n_bodies, 3), intent(in)    :: x_in, v_in
+        real(kind=precision), dimension(n_bodies   ), intent(in)    :: mass
+        real(kind=precision),                         intent(in)    :: H_big
+        real(kind=precision), dimension(n_bodies, 3), intent(out)   :: x_out, v_out
 
-        real(kind=16)  :: h_small   ! fortran is case insensitive; can't just use "H" and "h"
+        real(kind=precision)  :: h_small   ! fortran is case insensitive; can't just use "H" and "h"
 
-        real(kind=16), dimension(n_bodies, 3) :: force
-        real(kind=16), dimension(n_bodies, 3) :: x_previous, v_previous
-        real(kind=16), dimension(n_bodies, 3) :: x_current,  v_current
-        real(kind=16), dimension(n_bodies, 3) :: x_next,     v_next
+        real(kind=precision), dimension(n_bodies, 3) :: force
+        real(kind=precision), dimension(n_bodies, 3) :: x_previous, v_previous
+        real(kind=precision), dimension(n_bodies, 3) :: x_current,  v_current
+        real(kind=precision), dimension(n_bodies, 3) :: x_next,     v_next
 
         integer :: i, j, m
 
@@ -239,8 +239,8 @@ contains
             x_previous = x_current
             v_previous = v_current
 
-            x_current = x_next
-            v_current = v_next        
+            x_current  = x_next
+            v_current  = v_next        
 
         end do
 
@@ -260,7 +260,7 @@ contains
 
     end subroutine modified_midpoint
 
-    pure function rational_interp(n_in, x_in, y_in, x_out) result(y_out)
+    pure function rational_interp(n_in, x_in, y_in) result(y_out)
         ! rational interpolation, following the alorithm laid out in
         ! Numerical Recipes (v.2), Section 3.2
 
@@ -270,17 +270,18 @@ contains
         !   y_in    - n_in x 1 float array - observed data
         !       such that y_i = y(x_i) for x_i in [1, n_in]
 
-        !   x_in    - float - locations of interpolated data
+        ! REMOVED:   x_in    - float - locations of interpolated data
 
         ! outputs:
         !   y_out -   float - interpolated data
-        !       such that y_i = y(x_i) for x_i in [1, n_out]
+        !       such that y_out = y(x_out) for x_out = 0
 
         ! side effects:
         !   none (enforced)
 
         ! assumes:
-        !   all floats are double precision
+        !   interpolates only to x_out = 0
+        !       - that can be changed by adding x_out to input variables 
 
         ! features for later:
         !   allow interpolation (/ extrapolation) for a list of values
@@ -291,17 +292,17 @@ contains
 
         implicit none
 
-        integer,                         intent(in)  :: n_in
-        real(kind=16), dimension(n_in),  intent(in)  :: x_in, y_in
-        real(kind=16),                   intent(in)  :: x_out
-        real(kind=16)                                :: y_out
+        integer,                                intent(in)  :: n_in
+        real(kind=precision), dimension(n_in),  intent(in)  :: x_in, y_in
+        integer, parameter                                  :: x_out = 0
+        real(kind=precision)                                :: y_out
 
-        real(kind=16), dimension(n_in, n_in)         :: c_tableau
-        real(kind=16), dimension(n_in, n_in)         :: d_tableau
+        real(kind=precision), dimension(n_in, n_in)         :: c_tableau
+        real(kind=precision), dimension(n_in, n_in)         :: d_tableau
 
         ! base case of R
-        real(kind=16), parameter                     :: R = 0.
-        real(kind=16), dimension(n_in)               :: R_i
+        real(kind=precision), parameter                     :: R = 0.
+        real(kind=precision), dimension(n_in)               :: R_i
 
         integer     :: m, i     ! loop variable
 
