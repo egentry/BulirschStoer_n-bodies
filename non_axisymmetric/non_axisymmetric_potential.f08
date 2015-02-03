@@ -35,15 +35,15 @@ program non_axisymmetric_potential
     real(kind=precision), parameter     :: H_big = 1./real(10**(4), kind=precision) ! large step size
     real(kind=precision)                :: t
     real(kind=precision), parameter     :: t_max   = 100.
-    real(kind=precision), parameter     :: t_print = .001. ! print every t_print,
+    real(kind=precision), parameter     :: t_print = .001  ! print every t_print,
 
-
+    ! defined in the physics module -- changes for each potential
     type(accuracy_state)                :: state_initial, state_final
 
     integer                             :: i,j,k        ! loop variables
 
-    integer, dimension(n_bodies)        :: save_file_units
-    character(len=6)                    :: jth_body_str ! tmp variable used in filenames
+    integer                             :: save_file_unit
+    character(len=6)                    :: ith_body_str ! tmp variable used in filenames
     character(len=15)                   :: filename     ! tmp variable used in filenames
     character(len=15)                   :: data_format  ! for saving
 
@@ -60,23 +60,6 @@ program non_axisymmetric_potential
 
     call calc_initial_velocity(n_bodies, x, v)
 
-
-    do j=1, n_bodies
-        write (jth_body_str, "(I3.3)") j
-        filename = 'body_'//trim(jth_body_str)//'.dat'
-
-        open(newunit=save_file_units(j), file=filename, status='unknown')
-        write(save_file_units(j), *) "t",achar(9),achar(9),achar(9),achar(9),&
-            "x",achar(9),achar(9),achar(9),achar(9),&
-            "y",achar(9),achar(9),achar(9),achar(9),&
-            "z",achar(9),achar(9),achar(9),achar(9),&
-            "v_x",achar(9),achar(9),achar(9),achar(9),&
-            "v_y",achar(9),achar(9),achar(9),achar(9),&
-            "v_z"
-    end do
-    data_format = "(7e13.5)"
-
-
     call state_initial%initialize(n_bodies, x, v, mass)
 
     print *, 'energy (initial): '
@@ -92,9 +75,24 @@ program non_axisymmetric_potential
     print *, 'v_y: '
     print *, v(:,2)
 
-
     ! ! ! BEGIN INTEGRATIONS
+    data_format = "(7e13.5)"
     do i = 1,n_bodies
+        print *, 'starting body: '
+        print *, i
+        write (ith_body_str, "(I4.4)") i
+        filename = 'body_'//trim(ith_body_str)//'.dat'
+
+        open(newunit=save_file_unit, file=filename, status='unknown')
+        write(save_file_unit, *) &
+            "t",achar(9),achar(9),achar(9),achar(9),&
+            "x",achar(9),achar(9),achar(9),achar(9),&
+            "y",achar(9),achar(9),achar(9),achar(9),&
+            "z",achar(9),achar(9),achar(9),achar(9),&
+            "v_x",achar(9),achar(9),achar(9),achar(9),&
+            "v_y",achar(9),achar(9),achar(9),achar(9),&
+            "v_z"
+
         t = 0.
         do j=1,int(t_max/ H_big)
             t = t + H_big
@@ -104,9 +102,17 @@ program non_axisymmetric_potential
 !             print *, 't = '
 !             print *, j * H_big
             if (mod(j, int(t_print / H_big)).eq.0) then
-                write(save_file_units(i),data_format) t, x(i,1), x(i,2), x(i,3), v(i,1), v(i,2), v(i,3)
+                write(save_file_unit,data_format) &
+                t, &
+                x(i,1), &
+                x(i,2), &
+                x(i,3), &
+                v(i,1), &
+                v(i,2), &
+                v(i,3)
             endif
         end do
+        close(save_file_unit)
     end do
 
 
