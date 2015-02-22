@@ -21,6 +21,8 @@ module physics
     real(kind=precision), parameter     :: energy_tol           = 1d-11
     real(kind=precision), parameter     :: angular_momentum_tol = 1d-6
 
+    logical, parameter                  :: allow_z_motion = .False. ! for bulirsch_stoer
+
     contains
 
 subroutine calc_force(n_bodies, x, mass, force)

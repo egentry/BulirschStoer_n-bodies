@@ -1,6 +1,8 @@
 module bulirsch_stoer 
     use physics
 
+
+
 contains
 
     subroutine double_array_size_3_index(array_in)
@@ -141,17 +143,26 @@ contains
     !         print *, 'x_n before: '
     !         print *, x_n
 
-            do concurrent (i=1:n_bodies, j=1:2)
-                x_n(i,j) = rational_interp(n_steps/2, h_small_array(1:n_steps/2), &
-                    x_tmp(1:n_steps/2, i,j))
-                v_n(i,j) = rational_interp(n_steps/2, h_small_array(1:n_steps/2), &
-                    v_tmp(1:n_steps/2, i,j))
-            end do
-            do concurrent (i=1:n_bodies)
-                ! enforce z=0 plane, otherwise extrapolator can get confused
-                x_n(i,3) = 0.
-                v_n(i,3) = 0.
-            end do
+            if (allow_z_motion .eqv. .False. ) then
+                do concurrent (i=1:n_bodies, j=1:2)
+                    x_n(i,j) = rational_interp(n_steps/2, h_small_array(1:n_steps/2), &
+                        x_tmp(1:n_steps/2, i,j))
+                    v_n(i,j) = rational_interp(n_steps/2, h_small_array(1:n_steps/2), &
+                        v_tmp(1:n_steps/2, i,j))
+                end do
+                do concurrent (i=1:n_bodies)
+                    ! enforce z=0 plane, otherwise extrapolator can get confused
+                    x_n(i,3) = 0.
+                    v_n(i,3) = 0.
+                end do
+            else
+                do concurrent (i=1:n_bodies, j=1:3)
+                    x_n(i,j) = rational_interp(n_steps/2, h_small_array(1:n_steps/2), &
+                        x_tmp(1:n_steps/2, i,j))
+                    v_n(i,j) = rational_interp(n_steps/2, h_small_array(1:n_steps/2), &
+                        v_tmp(1:n_steps/2, i,j))
+                end do      
+            endif
 
             call state_current%initialize(n_bodies, x_n, v_n, mass)
 

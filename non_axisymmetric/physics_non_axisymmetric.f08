@@ -26,6 +26,7 @@ module physics
     real(kind=precision), parameter     :: x_max           = exp(energy_initial) &
                                                         / (1 - eccentricity)
 
+    logical, parameter                  :: allow_z_motion = .False. ! for bulirsch_stoer
 
 
     contains
