@@ -9,3 +9,8 @@ clean:
 	rm physics.mod physics_pythagorean.o bulirsch_stoer.mod bulirsch_stoer.o
 	rm pythagorean_3body
 	rm *.dat
+
+debug:
+	$(compiler) -g -c physics_pythagorean.f08
+	$(compiler) -g -c ../bulirsch_stoer.f08 
+	$(compiler) -g -o pythagorean_3body  physics_pythagorean.f08 ../bulirsch_stoer.f08 pythagorean_3body.f08

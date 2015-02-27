@@ -10,3 +10,8 @@ clean:
 	rm non_axisymmetric_potential
 	rm *.dat
 	rm surface_of_section.eps surface_of_section.pdf
+
+debug:
+	$(compiler) -g -c physics_non_axisymmetric.f08
+	$(compiler) -g -c ../bulirsch_stoer.f08 
+	$(compiler) -g -o non_axisymmetric_potential  physics_non_axisymmetric.f08 ../bulirsch_stoer.f08 non_axisymmetric_potential.f08
