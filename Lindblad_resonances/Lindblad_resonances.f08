@@ -1,40 +1,41 @@
-program non_axisymmetric_potential
+program Lindblad_resonances
     use physics
     use bulirsch_stoer
     implicit none
-    ! to do:
-    !   figure out how to make it so I don't have to explicitly use 'accuracy.f08'
-    !       within bulirsch_stoer.f08
-    !       -- that would help make this a bit easier to use modularly
 
     ! the main things you need to set are:
-    !    In physics_non_axisymmetric.f08:
+    !    In physics_Lindblad.f08:
     !       - precision - sets float precision (e.g. 8 = double)
     !       - energy_tol - fractional tolerance for energy conservation *each step*
+
     !       - eccentricity - eccentricity of the potential well
-    !       - energy_initial - defines family of orbits
-    !
+    !       - R_c          - scale radius
+    !       - V_0          - scale velocity
+    !       - Omega_b      - rotational frequency of perturbation pattern
+    !       - m            - number of azimuthal modes in perturbation
+    !                      - m=2 for bar
+    !       (R_corot, R_outer, v_corot_tang, v_outer_tang must also be changed
+    !           to fit the given values in R_c, V_0, etc.
+    !           See Binney & Tremaine Sec 3.3.3 to derive these values)
 
     !   In this file:
     !       - n_bodies
-    !           - will automatically start n_bodies of integration,
-    !             spaced throughout the initially allowed x_values ( 0 < x_0 < x_max )
+    !           - only two resonances exist for current potential
+    !           - for more bodies, you'll need to hard-code initial conditions
     !       - t_max
     !           - how long should the integration continue?
     !       - t_print
     !           - how often should you print?
 
 
-
-
-    integer, parameter                              :: n_bodies = 100
+    integer, parameter                              :: n_bodies = 2
     ! 3-position, 3-velocity
     real(kind=precision), dimension(n_bodies, 3)    :: x, v
     real(kind=precision), dimension(n_bodies)       :: mass
 
     real(kind=precision), parameter     :: H_big = 1./real(10**(4), kind=precision) ! large step size
     real(kind=precision)                :: t
-    real(kind=precision), parameter     :: t_max   = 100.
+    real(kind=precision), parameter     :: t_max   = 5000.
     real(kind=precision), parameter     :: t_print = .001  ! print every t_print,
 
     ! defined in the physics module -- changes for each potential
@@ -50,30 +51,29 @@ program non_axisymmetric_potential
     ! INITIALIZE
 
     ! initialize x_0 to a range of 0 < x_0 < x_max
-    do concurrent (i=1:n_bodies)
-        x(i,1) = x_max * i / (n_bodies + 1)
-        x(i,2) = 0
-        x(i,3) = 0
-    end do
+    x(1,1) = R_corot
+    x(1,2) = 0
+    x(1,3) = 0
+
+    x(2,1) = R_outer
+    x(2,2) = 0
+    x(2,3) = 0
+
+    v(1,1) = v_corot_tang * epsilon
+    v(1,2) = v_corot_tang
+    v(1,3) = 0
+
+    v(2,1) = v_outer_tang * epsilon
+    v(2,2) = v_outer_tang
+    v(2,3) = 0
 
     mass = 1.
-
-    call calc_initial_velocity(n_bodies, x, v)
 
     call state_initial%initialize(n_bodies, x, v, mass)
 
     print *, 'energy (initial): '
     print *,  state_initial%energy
 
-    print *, '---'
-    print *, 'x_max:'
-    print *, x_max
-    print *, 'x_0: '
-    print *, x(:,1)
-
-    print *, ''
-    print *, 'v_y: '
-    print *, v(:,2)
 
     ! ! ! BEGIN INTEGRATIONS
     data_format = "(7e13.5)"
@@ -129,4 +129,5 @@ program non_axisymmetric_potential
 
 
 end program
+
 
