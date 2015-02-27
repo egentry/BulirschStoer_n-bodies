@@ -18,14 +18,48 @@ module physics
             procedure, pass :: initialize => accuracy_state_initialize
     end type accuracy_state
 
-    real(kind=precision), parameter     :: energy_tol           = 1d-6
+    logical, parameter              :: allow_z_motion = .True. ! for bulirsch_stoer
+    real(kind=precision), parameter :: pi = 4 * atan(1.)
+
+    
+    ! ! !  TUNABLE QUANTITIES
+
+    real(kind=precision), parameter :: energy_tol  = 1d-6
+
+    real(kind=precision), parameter :: M_star      = 1
+    real(kind=precision), parameter :: M_planet    = 0.01
+    real(kind=precision), parameter :: M_outer     = 1
+
+    ! initial semi-major axes from central star
+    real(kind=precision), parameter :: a_planet_0  = 1
+    real(kind=precision), parameter :: a_outer_0   = 100
 
 
-    real(kind=precision), parameter :: M_star    = 1
-    real(kind=precision), parameter :: M_planet  = 0.01
-    real(kind=precision), parameter :: M_outer   = 1
+    real(kind=precision), parameter :: Theta       = .25 ! conserved integral of motion
+    real(kind=precision), parameter :: x_0         = .4
 
-    logical, parameter                  :: allow_z_motion = .True. ! for bulirsch_stoer
+
+    ! ! ! DERIVED QUANTITIES
+    real(kind=precision), parameter :: e_0         = sqrt(1 - x_0)
+    real(kind=precision), parameter :: cosi_0      = sqrt(Theta / x_0) !cosine of initial inclination
+    real(kind=precision), parameter :: i_0         = acos(cosi_0)
+    
+    ! initial distances of bodies, from central star
+    real(kind=precision), parameter :: r_planet_0 = a_planet_0 * (1 - e_0)
+    real(kind=precision), parameter :: r_outer_0  = a_outer_0
+
+    ! periods of unperturbed orbits
+    real(kind=precision), parameter :: P_planet   = 2*pi*sqrt(a_planet_0**3 / (M_star + M_planet))
+    real(kind=precision), parameter :: P_outer    = 2*pi*sqrt(a_outer_0**3  / (M_star + M_outer ))
+
+    !angular momentum magnitudes of unperturbed orbits
+    real(kind=precision), parameter :: l_planet   = 2*pi*a_planet_0**2 * sqrt(1 - e_0**2) / P_planet
+    real(kind=precision), parameter :: l_outer    = 2*pi*a_outer_0**2                     / P_outer
+ 
+    ! initial velocities of orbits
+    real(kind=precision), parameter :: v_planet_0 = l_planet / r_planet_0
+    real(kind=precision), parameter :: v_outer_0  = l_outer  / r_outer_0
+
 
     contains
 

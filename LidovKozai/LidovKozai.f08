@@ -11,26 +11,29 @@ program LidovKozai
     !    In physics_LidovKozai.f08:
     !       - precision - sets float precision (e.g. 8 = double)
     !       - energy_tol - fractional tolerance for energy conservation *each step*
-    !
-
-    !   In this file:
-    !       - Theta
-    !           - conserved integral of motion
-    !       - x_0 (= 1- eccentricity_0^2)
-    !           - sets initial eccentricity, 
-    !             which determines inclination, argument of periastron
-    !   
     !       - Body masses
     !           - M_star    - innermost star
     !           - M_planet  - inner companion to star; should be low mass
     !           - M_outer   - outer, long-period binary companion
-    !       
+    !       - Semi-major axes (unperturbed)
+    !           - a_planet_0 - Planet - Star binary
+    !           - a_outer_0  - outer object - Star binary
+    !       - Theta
+    !           - conserved integral of motion
+    !           - Theta = (1 - e_planet**2) cos i
+    !       - x_0 (= 1- e_0^2)
+    !           - sets initial eccentricity, 
+    !             which determines inclination, argument of periastron
+    !
+
+    !   In this file:
+    !   
     !       - t_max
     !           - how long should the integration continue?
     !       - t_print
     !           - how often should you print?
 
-
+ 
 
 
     integer, parameter                              :: n_bodies = 3
@@ -39,12 +42,15 @@ program LidovKozai
     real(kind=precision), dimension(n_bodies)       :: mass
     real(kind=precision)                            :: mass_total
 
-    real(kind=precision), parameter     :: H_big = 1./real(10**(2), kind=precision) ! large step size
+    real(kind=precision), parameter     :: H_big = 1./real(10**(3), kind=precision) ! large step size
     real(kind=precision)                :: t
-    real(kind=precision), parameter     :: t_max   = 10000.
-    real(kind=precision), parameter     :: t_print = 1.  ! print every t_print,
+    real(kind=precision), parameter     :: t_max   = 100000.
+    real(kind=precision), parameter     :: t_print = .1  ! print every t_print,
 
-    real(kind=precision)                :: v_COM_x, v_COM_y, v_COM_z ! to remove center of mass velocity
+    ! for transforming into Center of Mass Frame
+    real(kind=precision)                :: v_x_COM, v_y_COM, v_z_COM ! to remove center of mass velocity
+    real(kind=precision)                :: x_COM, y_COM, z_COM ! to remove center of mass position
+
 
     ! defined in the physics module -- changes for each potential
     type(accuracy_state)                :: state_initial, state_final
@@ -88,37 +94,47 @@ program LidovKozai
 
 
     mass(2) =  M_planet
-    x(2, 1) =  1.                        ! body 2, x position 
+    x(2, 1) =  r_planet_0 * sin(i_0)     ! body 2, x position 
     x(2, 2) =  0.                        ! body 2, y position 
-    x(2, 3) =  1.                        ! body 2, z position 
+    x(2, 3) =  r_planet_0 * cos(i_0)     ! body 2, z position 
     v(2, 1) =  0.                        ! body 2, x velocity 
-    v(2, 2) =  1.                        ! body 2, y velocity 
+    v(2, 2) =  v_planet_0                ! body 2, y velocity 
     v(2, 3) =  0.                        ! body 2, z velocity
 
 
     mass(3) =  M_outer
-    x(3, 1) =  100.                      ! body 3, x position 
-    x(3, 2) =    0.                      ! body 3, y position 
-    x(3, 3) =    0.                      ! body 3, z position
-    v(3, 1) =    0.                      ! body 3, x velocity 
-    v(3, 2) = sqrt(M_star / x(3,1))      ! body 3, y velocity 
-    v(3, 3) =    0.                      ! body 3, z velocity
+    x(3, 1) =  r_outer_0                 ! body 3, x position 
+    x(3, 2) =  0.                        ! body 3, y position 
+    x(3, 3) =  0.                        ! body 3, z position
+    v(3, 1) =  0.                        ! body 3, x velocity 
+    v(3, 2) =  v_outer_0                 ! body 3, y velocity 
+    v(3, 3) =  0.                        ! body 3, z velocity
 
     mass_total = sum(mass)
-    !! REMOVE CENTER OF MASS VELOCITY
-    v_COM_x = 0.
-    v_COM_y = 0.
-    v_COM_z = 0.
+    !! Go into Center of Mass Frame
+    v_x_COM = 0.
+    v_y_COM = 0.
+    v_z_COM = 0.
+    x_COM   = 0.
+    y_COM   = 0.
+    z_COM   = 0.
 
     do concurrent (i=1:n_bodies)
-        v_COM_x = v_COM_x + v(i,1)*mass(i)/mass_total
-        v_COM_y = v_COM_y + v(i,2)*mass(i)/mass_total
-        v_COM_z = v_COM_z + v(i,3)*mass(i)/mass_total
+        v_x_COM = v_x_COM + v(i,1)*mass(i)/mass_total
+        v_y_COM = v_y_COM + v(i,2)*mass(i)/mass_total
+        v_z_COM = v_z_COM + v(i,3)*mass(i)/mass_total
+          x_COM =   x_COM + x(i,1)*mass(i)/mass_total
+          y_COM =   y_COM + x(i,2)*mass(i)/mass_total
+          z_COM =   z_COM + x(i,3)*mass(i)/mass_total
     end do
     do concurrent (i=1:n_bodies)
-        v(i,1) = v(i,1) - v_COM_x
-        v(i,2) = v(i,2) - v_COM_y
-        v(i,3) = v(i,3) - v_COM_z
+        v(i,1) = v(i,1) - v_x_COM
+        v(i,2) = v(i,2) - v_y_COM
+        v(i,3) = v(i,3) - v_z_COM
+
+        x(i,1) = x(i,1) -   x_COM
+        x(i,2) = x(i,2) -   y_COM
+        x(i,3) = x(i,3) -   z_COM
     end do
 
 
@@ -126,6 +142,13 @@ program LidovKozai
 
     print *, 'energy (initial): '
     print *,  state_initial%energy
+
+!     print *, "a_planet_0"
+!     print *, a_planet_0
+!     print *, r_planet_0
+!     print *, e_0 
+!     print *, x
+!     print *, v
 
     ! ! ! BEGIN INTEGRATIONS
     t = 0.

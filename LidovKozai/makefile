@@ -9,3 +9,8 @@ clean:
 	rm physics.mod physics_LidovKozai.o bulirsch_stoer.mod bulirsch_stoer.o
 	rm LidovKozai
 	rm *.dat
+
+debug:
+	$(compiler) -g -c physics_LidovKozai.f08
+	$(compiler) -g -c ../bulirsch_stoer.f08 
+	$(compiler) -g -o LidovKozai  physics_LidovKozai.f08 ../bulirsch_stoer.f08 LidovKozai.f08
