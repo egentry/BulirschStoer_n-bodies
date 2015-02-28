@@ -25,7 +25,7 @@ module physics
 
     contains
 
-subroutine calc_force(n_bodies, x, mass, force)
+subroutine calc_force(n_bodies, x, v, mass, force)
     ! Calculate gravitational forces given current positions
 
     ! inputs:
@@ -43,8 +43,9 @@ subroutine calc_force(n_bodies, x, mass, force)
     ! features for later:
 
     implicit none
-    integer,                               intent(in)  :: n_bodies
+    integer,                                      intent(in)  :: n_bodies
     real(kind=precision), dimension(n_bodies, 3), intent(in)  :: x
+    real(kind=precision), dimension(n_bodies, 3), intent(in)  :: v
     real(kind=precision), dimension(n_bodies   ), intent(in)  :: mass
     real(kind=precision), dimension(n_bodies, 3), intent(out) :: force
     real(kind=precision), dimension(3)                        :: df

@@ -8,7 +8,7 @@ module physics
     !             compiled version of the right physics.
 
     implicit none
-    private calc_energy
+    public calc_energy
     public calc_force, accuracy_check
     integer, parameter           :: precision=8 ! double precision
 
@@ -23,32 +23,30 @@ module physics
 
     real(kind=precision), parameter     :: energy_tol      = 1d-4
 
-    real(kind=precision), parameter     :: eccentricity    = .1
+    real(kind=precision), parameter     :: epsilon         = .1
     real(kind=precision), parameter     :: R_c             = 0.5
     real(kind=precision), parameter     :: V_0             = 1
     real(kind=precision), parameter     :: Omega_b         = 1.25
     integer,              parameter     :: m               = 2
 
-    !! perturbation paramater
-    !!      apply v_tang * epsilon to radial direction 
-    real(kind=precision), parameter     :: epsilon         = 1e-2
-
 
     ! ! ! DERIVED CONSTANTS
     ! location of resonances (inner Lindblad does not exist)
     real(kind=precision), parameter     :: R_corot         = 0.6245
-    real(kind=precision), parameter     :: R_outer         = 1.308
+    real(kind=precision), parameter     :: R_outer         = 1.308363879053123
+    real(kind=precision), parameter     :: R_general       = 1
 
     ! unperturbed tangential velocities at resonances, in rotating frame
-    real(kind=precision), parameter     :: v_corot_tang    = 0
-    real(kind=precision), parameter     :: v_outer_tang    = 0.934
+    real(kind=precision), parameter     :: v_corot_tang    =  0
+    real(kind=precision), parameter     :: v_outer_tang    = -0.70134187239444
+    real(kind=precision), parameter     :: v_general_tang  = -0.35557280900008
 
 
 
 
     contains
 
-    subroutine calc_force(n_bodies, x, mass, force)
+    subroutine calc_force(n_bodies, x, v, mass, force)
         ! Calculate gravitational forces given current positions
 
         ! inputs:
@@ -68,6 +66,7 @@ module physics
         implicit none
         integer,                                      intent(in)  :: n_bodies
         real(kind=precision), dimension(n_bodies, 3), intent(in)  :: x
+        real(kind=precision), dimension(n_bodies, 3), intent(in)  :: v
         real(kind=precision), dimension(n_bodies   ), intent(in)  :: mass
         real(kind=precision), dimension(n_bodies, 3), intent(out) :: force
         real(kind=precision)                                      :: dLog_term
@@ -81,16 +80,26 @@ module physics
             x2 = x(i,2)  ! y coord
             R_squared = x1**2 + x2**2   ! radial coordinate, SQUARED
 
-            dLog_term = V_0**2 * (1 + eccentricity**2 * ((x1**2 - x2**2) / R_squared) ) &
+            dLog_term = V_0**2 * (1 + (epsilon**2 * ((x1**2 - x2**2) / R_squared)) ) &
                 / (R_c**2 + R_squared)
 
-            dcos_term = (1./2) * V_0**2 * log(R_c**2 + R_squared) &
-                * ( 4 * eccentricity * x1 * x2) / (R_squared**2)
+            dcos_term = 2 * V_0**2 * log(R_c**2 + R_squared) &
+                * (epsilon**2 * x1 * x2) / (R_squared**2)
 
 
             force(i,1) = mass(i) * ( -x1*dLog_term - x2*dcos_term )
             force(i,2) = mass(i) * ( -x2*dLog_term + x1*dcos_term )
             force(i,3) = 0.
+
+            ! Add centrifugal:
+            force(i,1) = force(i,1) + mass(i) * Omega_b**2 * x(i,1)
+            force(i,2) = force(i,2) + mass(i) * Omega_b**2 * x(i,2)
+            force(i,3) = force(i,3) + 0.          
+
+!             ! Add coriolis:
+            force(i,1) = force(i,1) + 2 * mass(i) * Omega_b * v(i,2)
+            force(i,2) = force(i,2) - 2 * mass(i) * Omega_b * v(i,1)
+            force(i,3) = force(i,3) + 0.                 
         end do
 
     end subroutine calc_force
@@ -98,7 +107,7 @@ module physics
 
     pure function calc_energy(n_bodies, x, v, mass) result(energy)
         implicit none
-        integer,                               intent(in)         :: n_bodies
+        integer,                                      intent(in)  :: n_bodies
         real(kind=precision), dimension(n_bodies, 3), intent(in)  :: x, v
         real(kind=precision), dimension(n_bodies   ), intent(in)  :: mass
         real(kind=precision)                                      :: energy
@@ -111,10 +120,11 @@ module physics
         end do
 
         do concurrent (i=1:n_bodies)
-            energy  = energy + (1./2) * V_0**2 &
+            energy  = energy + mass(i) * (1./2) * V_0**2 &
                 * log(R_c**2 + x(i,1)**2 + x(i,2)**2) &
-                * (1 + eccentricity**2  &
+                * (1 + epsilon**2  &
                     * ((x(i,1)**2 - x(i,2)**2) / (x(i,1)**2 + x(i,2)**2)) )
+            energy = energy - ( mass(i)*Omega_b**2 * (x(i,1)**2 + x(i,2)**2)/2 )  ! centrifugal barrier
         end do
         
     end function calc_energy

@@ -231,7 +231,7 @@ contains
         v_previous = v_in
 
         ! n = 1 base case
-        call calc_force(n_bodies, x_previous, mass, force)
+        call calc_force(n_bodies, x_previous, v_previous, mass, force)
         do concurrent (i=1:n_bodies, j=1:3)
             x_current(i,j) = x_previous(i,j) + h_small * v_previous(i,j)
             v_current(i,j) = v_previous(i,j) + h_small * force(i,j) / mass(i)
@@ -241,7 +241,7 @@ contains
             ! "*_previous" means m-1
             ! "*_current"  means m
             ! "*_next"     means m+1
-            call calc_force(n_bodies, x_current, mass, force)
+            call calc_force(n_bodies, x_current, v_current, mass, force)
             do concurrent (i=1:n_bodies, j=1:3)
                 x_next(i,j) = x_previous(i,j) + 2*h_small * v_current(i,j)
                 v_next(i,j) = v_previous(i,j) + 2*h_small * force(i,j) / mass(i)
@@ -259,7 +259,7 @@ contains
         !   how to match my names to the Eq 16.3.2 subscripts:
         !       z_n     - "current"
         !       z_n-1   - "previous"
-        call calc_force(n_bodies, x_current, mass, force)
+        call calc_force(n_bodies, x_current, v_current, mass, force)
         do concurrent (i=1:n_bodies, j=1:3)
             x_out(i,j) = 1./2 * ( x_current(i,j) + x_previous(i,j) &
                                 + h_small * v_current(i,j) )

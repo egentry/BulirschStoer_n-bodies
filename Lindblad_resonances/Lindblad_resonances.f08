@@ -8,7 +8,7 @@ program Lindblad_resonances
     !       - precision - sets float precision (e.g. 8 = double)
     !       - energy_tol - fractional tolerance for energy conservation *each step*
 
-    !       - eccentricity - eccentricity of the potential well
+    !       - epsilon      - strength of the perturbation
     !       - R_c          - scale radius
     !       - V_0          - scale velocity
     !       - Omega_b      - rotational frequency of perturbation pattern
@@ -17,6 +17,9 @@ program Lindblad_resonances
     !       (R_corot, R_outer, v_corot_tang, v_outer_tang must also be changed
     !           to fit the given values in R_c, V_0, etc.
     !           See Binney & Tremaine Sec 3.3.3 to derive these values)
+    !       R_general, v_general_tang can also be changed
+    !           but it's just an arbitrary position to show
+    !           non-resonant behavior
 
     !   In this file:
     !       - n_bodies
@@ -28,15 +31,15 @@ program Lindblad_resonances
     !           - how often should you print?
 
 
-    integer, parameter                              :: n_bodies = 2
+    integer, parameter                              :: n_bodies = 3
     ! 3-position, 3-velocity
     real(kind=precision), dimension(n_bodies, 3)    :: x, v
     real(kind=precision), dimension(n_bodies)       :: mass
 
-    real(kind=precision), parameter     :: H_big = 1./real(10**(4), kind=precision) ! large step size
+    real(kind=precision), parameter     :: H_big = 1./real(10**(3), kind=precision) ! large step size
     real(kind=precision)                :: t
-    real(kind=precision), parameter     :: t_max   = 5000.
-    real(kind=precision), parameter     :: t_print = .001  ! print every t_print,
+    real(kind=precision), parameter     :: t_max   = 500.
+    real(kind=precision), parameter     :: t_print = .1  ! print every t_print,
 
     ! defined in the physics module -- changes for each potential
     type(accuracy_state)                :: state_initial, state_final
@@ -47,6 +50,8 @@ program Lindblad_resonances
     character(len=6)                    :: ith_body_str ! tmp variable used in filenames
     character(len=15)                   :: filename     ! tmp variable used in filenames
     character(len=15)                   :: data_format  ! for saving
+
+    real(kind=precision) :: energy_tmp
 
     ! INITIALIZE
 
@@ -59,13 +64,21 @@ program Lindblad_resonances
     x(2,2) = 0
     x(2,3) = 0
 
-    v(1,1) = v_corot_tang * epsilon
+    v(1,1) = (1 + v_corot_tang) * epsilon  ! radial velocity perturbation
     v(1,2) = v_corot_tang
     v(1,3) = 0
 
-    v(2,1) = v_outer_tang * epsilon
+    v(2,1) = (5 + v_outer_tang) * epsilon  ! radial velocity perturbation
     v(2,2) = v_outer_tang
     v(2,3) = 0
+
+    x(3,1) = R_general
+    x(3,2) = 0
+    x(3,3) = 0
+
+    v(3,1) = (5 + v_general_tang) * epsilon  ! radial velocity perturbation
+    v(3,2) = v_general_tang
+    v(3,3) = 0
 
     mass = 1.
 
@@ -92,6 +105,10 @@ program Lindblad_resonances
             "v_x",achar(9),achar(9),achar(9),achar(9),&
             "v_y",achar(9),achar(9),achar(9),achar(9),&
             "v_z"
+
+        print *, "Energy of body", i
+        energy_tmp = calc_energy(1, x(i,:), v(i,:), mass(i))
+        print *, energy_tmp
 
         t = 0.
         do j=1,int(t_max/ H_big)

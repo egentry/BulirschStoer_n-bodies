@@ -49,8 +49,9 @@ module physics
         ! features for later:
 
         implicit none
-        integer,                               intent(in)         :: n_bodies
+        integer,                                      intent(in)  :: n_bodies
         real(kind=precision), dimension(n_bodies, 3), intent(in)  :: x
+        real(kind=precision), dimension(n_bodies, 3), intent(in)  :: v
         real(kind=precision), dimension(n_bodies   ), intent(in)  :: mass
         real(kind=precision), dimension(n_bodies, 3), intent(out) :: force
         real(kind=precision)                                      :: denominator
