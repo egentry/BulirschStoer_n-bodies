@@ -44,8 +44,8 @@ program LidovKozai
 
     real(kind=precision), parameter     :: H_big = 1./real(10**(3), kind=precision) ! large step size
     real(kind=precision)                :: t
-    real(kind=precision), parameter     :: t_max   = 100000.
-    real(kind=precision), parameter     :: t_print = .1  ! print every t_print,
+    real(kind=precision), parameter     :: t_max   = 1000000.
+    real(kind=precision), parameter     :: t_print = 25      ! print every t_print,
 
     ! for transforming into Center of Mass Frame
     real(kind=precision)                :: v_x_COM, v_y_COM, v_z_COM ! to remove center of mass velocity
@@ -79,6 +79,8 @@ program LidovKozai
     data_format = "(7e13.5)"
 
     ! INITIALIZE
+    print *, "i_0 = ", i_0 * 180 / pi
+    print *, "e_0 = ", e_0
 
     mass(1) = M_star
     mass(2) = M_planet
@@ -94,12 +96,12 @@ program LidovKozai
 
 
     mass(2) =  M_planet
-    x(2, 1) =  r_planet_0 * sin(i_0)     ! body 2, x position 
-    x(2, 2) =  0.                        ! body 2, y position 
-    x(2, 3) =  r_planet_0 * cos(i_0)     ! body 2, z position 
-    v(2, 1) =  0.                        ! body 2, x velocity 
-    v(2, 2) =  v_planet_0                ! body 2, y velocity 
-    v(2, 3) =  0.                        ! body 2, z velocity
+    x(2, 1) =  r_planet_0 *  0           ! body 2, x position 
+    x(2, 2) =  r_planet_0 *  cos(i_0)    ! body 2, y position 
+    x(2, 3) =  r_planet_0 *  sin(i_0)    ! body 2, z position 
+    v(2, 1) =  v_planet_0 * (-1)         ! body 2, x velocity 
+    v(2, 2) =  v_planet_0 *  0           ! body 2, y velocity 
+    v(2, 3) =  v_planet_0 *  0           ! body 2, z velocity
 
 
     mass(3) =  M_outer
@@ -112,29 +114,30 @@ program LidovKozai
 
     mass_total = sum(mass)
     !! Go into Center of Mass Frame
-    v_x_COM = 0.
-    v_y_COM = 0.
-    v_z_COM = 0.
     x_COM   = 0.
     y_COM   = 0.
     z_COM   = 0.
+    v_x_COM = 0.
+    v_y_COM = 0.
+    v_z_COM = 0.
 
     do concurrent (i=1:n_bodies)
-        v_x_COM = v_x_COM + v(i,1)*mass(i)/mass_total
-        v_y_COM = v_y_COM + v(i,2)*mass(i)/mass_total
-        v_z_COM = v_z_COM + v(i,3)*mass(i)/mass_total
           x_COM =   x_COM + x(i,1)*mass(i)/mass_total
           y_COM =   y_COM + x(i,2)*mass(i)/mass_total
           z_COM =   z_COM + x(i,3)*mass(i)/mass_total
+
+        v_x_COM = v_x_COM + v(i,1)*mass(i)/mass_total
+        v_y_COM = v_y_COM + v(i,2)*mass(i)/mass_total
+        v_z_COM = v_z_COM + v(i,3)*mass(i)/mass_total
     end do
     do concurrent (i=1:n_bodies)
-        v(i,1) = v(i,1) - v_x_COM
-        v(i,2) = v(i,2) - v_y_COM
-        v(i,3) = v(i,3) - v_z_COM
-
         x(i,1) = x(i,1) -   x_COM
         x(i,2) = x(i,2) -   y_COM
         x(i,3) = x(i,3) -   z_COM
+
+        v(i,1) = v(i,1) - v_x_COM
+        v(i,2) = v(i,2) - v_y_COM
+        v(i,3) = v(i,3) - v_z_COM
     end do
 
 
@@ -150,8 +153,21 @@ program LidovKozai
 !     print *, x
 !     print *, v
 
-    ! ! ! BEGIN INTEGRATIONS
+
     t = 0.
+    ! SAVE INITIAL CONDITIONS
+    do j=1, n_bodies
+        write(save_file_units(j),data_format) &
+        t, &
+        x(j,1), &
+        x(j,2), &
+        x(j,3), &
+        v(j,1), &
+        v(j,2), &
+        v(j,3)
+    end do
+
+    ! ! ! BEGIN INTEGRATIONS
     do i=1,int(t_max/ H_big)
         t = t + H_big
         call bulirsch_stoer_step(n_bodies, x, v, mass, H_big)

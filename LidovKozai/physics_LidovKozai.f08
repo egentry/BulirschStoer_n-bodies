@@ -69,6 +69,8 @@ module physics
         ! inputs:
         !   n_bodies    - integer - number of interacting bodies
         !   x           - (n_bodies x 3) float array - positions 
+        !   v           - (n_bodies x 3) float array - velocities 
+        !               - not used
 
         ! outputs:
         !   f           - (n_bodies x 3) float array - forces 
