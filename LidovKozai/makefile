@@ -28,7 +28,7 @@ debug: $(EXE_FILE)
 
 ############# DEPENDENCIES ########################################
 bulirsch_stoer.f08: ../bulirsch_stoer.f08
-	cp ../bulirsch_stoer_new.f08 bulirsch_stoer.f08  # there's probably a better way to do this...
+	cp ../bulirsch_stoer.f08 bulirsch_stoer.f08  # there's probably a better way to do this...
 
 LidovKozai.o: physics_LidovKozai.o bulirsch_stoer.o
 

@@ -28,7 +28,7 @@ debug: $(EXE_FILE)
 
 ############# DEPENDENCIES ########################################
 bulirsch_stoer.f08: ../bulirsch_stoer.f08
-	cp ../bulirsch_stoer_new.f08 bulirsch_stoer.f08  # there's probably a better way to do this...
+	cp ../bulirsch_stoer.f08 bulirsch_stoer.f08  # there's probably a better way to do this...
 
 Lindblad_resonances.o: physics_Lindblad_resonances.o bulirsch_stoer.o
 
