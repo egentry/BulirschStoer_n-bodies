@@ -1,16 +1,35 @@
-compiler=gfortran
+FC=gfortran
+FLAGS        = -O2
+FLAGS_DEBUG  = -ggdb -g -Wall
+EXE_FILE = Lindblad_resonances
+OBJS =  Lindblad_resonances.o physics_Lindblad_resonances.o bulirsch_stoer.o 
+ 
+############# SUFFIX RULES ########################################
+$(EXE_FILE) : $(OBJS) ../bulirsch_stoer.f08
+	$(FC) $(FLAGS) $(OBJS) -o $(EXE_FILE)
+	@echo "linking..."
 
-Lindblad_resonances: Lindblad_resonances.f08 ../bulirsch_stoer.f08 physics_Lindblad_resonances.f08
-	$(compiler) -O2 -c physics_Lindblad_resonances.f08
-	$(compiler) -O2 -c ../bulirsch_stoer.f08 
-	$(compiler) -O2 -o Lindblad_resonances  physics_Lindblad_resonances.f08 ../bulirsch_stoer.f08 Lindblad_resonances.f08
+.SUFFIXES :             # clear all defaults
+.SUFFIXES : .f08 .o     # and replace
 
+.f08.o:
+	$(FC) $(FLAGS) -c  $<
+
+############# MAKE RULES ########################################
 clean:
-	rm physics.mod physics_Lindblad_resonances.o bulirsch_stoer.mod bulirsch_stoer.o
-	rm Lindblad_resonances
-	rm *.dat
+	@echo "cleaning build files and integration data"
+	@rm -f *.o *.mod $(EXE_FILE)
+	@rm -f bulirsch_stoer.f08
+	@rm -f *.dat
 
-debug:
-	$(compiler) -g -c physics_Lindblad_resonances.f08
-	$(compiler) -g -c ../bulirsch_stoer.f08 
-	$(compiler) -g -o Lindblad_resonances  physics_Lindblad_resonances.f08 ../bulirsch_stoer.f08 Lindblad_resonances.f08
+debug: FLAGS = $(FLAGS_DEBUG) 
+debug: clean 			 # is there a better way to ensure all .o's are debug friendly?
+debug: $(EXE_FILE)
+
+############# DEPENDENCIES ########################################
+bulirsch_stoer.f08: ../bulirsch_stoer.f08
+	cp ../bulirsch_stoer_new.f08 bulirsch_stoer.f08  # there's probably a better way to do this...
+
+Lindblad_resonances.o: physics_Lindblad_resonances.o bulirsch_stoer.o
+
+bulirsch_stoer.o: physics_Lindblad_resonances.o

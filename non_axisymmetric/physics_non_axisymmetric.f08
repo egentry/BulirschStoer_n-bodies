@@ -31,7 +31,7 @@ module physics
 
     contains
 
-    subroutine calc_force(n_bodies, x, mass, force)
+    subroutine calc_force(n_bodies, x, v, mass, force)
         ! Calculate gravitational forces given current positions
 
         ! inputs:
